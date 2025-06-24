@@ -1,6 +1,6 @@
 %Script for Amy to Detect Pursuit Bouts and Durations for Males in Varying Female Density, to be revised by Adriane
 
-cd('/Volumes/otopaliklab/flydisco_data/2025-06-20/MultibubbleVariableDensity_multibubble__whiteOnly-Chelo_CSMH_2x1_1hr_CSMH_20250620T093702') %change accordingly
+cd('/Volumes/otopaliklab/flydisco_data/2025-06-23/MultibbubleVariableDensity_multibubble__WhiteOnly1hour_CSMH_2x1_1hr_CSMH_20250623T080740') %change accordingly
 load('registered_trx.mat')
 load('movie-track.mat')
 
@@ -16,7 +16,7 @@ fly_IDs = [
     16,17,18;
     19,20,21;
     22,23,24;
-    26,25,27
+    25,26,27
 ];
 FPS = 60;  
 % Compute endframe across all flies
@@ -183,7 +183,7 @@ for chamber = 1:n_chambers
         [bouts, lens] = detect_binarybouts(bin);  % Final detection
 
         % Plot ethogram
-        figure(33); hold on
+        figure(3); hold on
         inds = find(bin == 1);
         plot(trx(male_id).timestamps(inds), chamber * ones(size(inds)), '|', 'MarkerSize', 50);
 
@@ -193,19 +193,23 @@ for chamber = 1:n_chambers
             plot(trx(male_id).timestamps(inds), -1 * ones(size(inds)), '|', 'MarkerSize', 10);
         end
     end
+    ylim([0 n_chambers + 1])
+ylabel('Chamber No.', 'FontSize', 12)
+xlabel('Time (s)', 'FontSize', 12)
 
-    figure(33)
+
+    figure(3)
     box off
 end
 
-figure(33)
+figure(3)
 ylim([0 n_chambers + 1])
 ylabel('Chamber No.', 'FontSize', 12)
 xlabel('Time (s)', 'FontSize', 12)
 
 %% Stacked Bar Graphs: % Time spent with each target
 
-figure(55); clf
+figure(5); clf
 clear bar_stats target_stats
 
 n_chambers = size(fly_IDs, 1);
@@ -255,7 +259,7 @@ bar(bar_stats, 'stacked')
 box off
 ylabel('% Total Time', 'FontSize', 12)
 ylim([0 100])
-xlabel('Expreiment No. (15 Minutes)', 'FontSize', 12) %change for the 1hr long
+xlabel('Expreiment No. (60 Minutes)', 'FontSize', 12) %change for the 1hr long
 legend('Target 1', 'Target 2', 'Disengaged', 'FontSize', 12, 'Location', 'northeast')
 
 % Plot 2: Percent pursuit time only
@@ -264,5 +268,39 @@ bar(target_stats, 'stacked')
 box off
 ylabel('% Pursuit Time', 'FontSize', 12)
 ylim([0 100])
-xlabel('Experiment No. (15 Minutes)', 'FontSize', 12) %change for 1hr experiments
+xlabel('Experiment No. (60 Minutes)', 'FontSize', 12) %change for 1hr experiments
 legend('Target 1', 'Target 2', 'FontSize', 12, 'Location', 'northeast')
+
+%% Save Results for Further Analysis
+
+% Define the directory to save the results
+results_dir = '/Volumes/otopaliklab/Amy/2025-06-23/MultibbubleVariableDensity_multibubble__WhiteOnly1hour_CSMH_2x1_1hr_CSMH_20250623T080740'; % Change date and name of folder experiment accordingly
+
+% Create directory if it doesn't exist
+if ~exist(results_dir, 'dir')
+    mkdir(results_dir);
+end
+
+% Save all open figures
+figHandles = findall(0, 'Type', 'figure');
+for i = 1:length(figHandles)
+    fig = figHandles(i);
+
+    % Use figure number if Name is empty
+    fig_name = get(fig, 'Name');
+    if isempty(fig_name)
+        fig_name = ['Figure_' num2str(fig.Number)];
+    end
+
+    % Sanitize figure name: replace spaces and punctuation
+    fig_name = regexprep(fig_name, '[^\w]', '_');
+
+    % Bring figure to focus (optional, but avoids issues with invisible figures)
+    figure(fig.Number);
+
+    % Save as .png and .fig
+    saveas(fig, fullfile(results_dir, [fig_name '.png']));
+    savefig(fig, fullfile(results_dir, [fig_name '.fig']));
+end
+
+disp(['Saved all figures to: ' results_dir])
