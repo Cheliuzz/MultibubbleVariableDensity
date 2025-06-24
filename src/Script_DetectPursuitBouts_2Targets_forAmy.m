@@ -271,6 +271,93 @@ ylim([0 100])
 xlabel('Experiment No. (60 Minutes)', 'FontSize', 12) %change for 1hr experiments
 legend('Target 1', 'Target 2', 'FontSize', 12, 'Location', 'northeast')
 
+
+%% Plot Mean Bout Lengths
+
+% Threshold parameters
+time_threshold = 10 * FPS;   % seconds
+dist_threshold = 5;          % mm
+join_threshold = 3;          % seconds
+
+figure(3); clf
+
+n_chambers = size(fly_IDs, 1);
+mn_lens = nan(n_chambers, 3);
+std_lens = nan(n_chambers, 3);
+
+for chamber = 1:n_chambers
+    male_id = fly_IDs(chamber, 1);
+    female_ids = fly_IDs(chamber, 2:3);
+
+    binary_vects = zeros(3, endframe_all);  % [target1; target2; disengaged]
+
+    % For each female
+    for k = 1:2
+        f_id = female_ids(k);
+        bin = zeros(endframe_all, 1);
+        dist = zeros(endframe_all, 1);
+
+        % Compute distance
+        for i = 1:endframe_all
+            dist(i) = pdist([
+                trx(male_id).x_mm(i), trx(male_id).y_mm(i);
+                trx(f_id).x_mm(i),    trx(f_id).y_mm(i)
+            ]);
+        end
+
+        % Initial binary vector
+        bin(dist < dist_threshold) = 1;
+
+        % Detect & join short bouts
+        [bouts, lens] = detect_binarybouts(bin);
+        for i = 1:length(lens)-1
+            if bouts(i+1,1) - bouts(i,2) < join_threshold * FPS
+                bin(bouts(i,2):bouts(i+1,1)) = 1;
+            end
+        end
+
+        % Remove short bouts
+        [bouts, lens] = detect_binarybouts(bin);
+        for i = 1:length(lens)
+            if lens(i) < time_threshold
+                bin(bouts(i,1):bouts(i,2)) = 0;
+            end
+        end
+
+        % Final version
+        binary_vects(k, :) = bin;
+    end
+
+    % Disengaged (not pursuing either target)
+    both_off = binary_vects(1,:) == 0 & binary_vects(2,:) == 0;
+    binary_vects(3, both_off) = 1;
+
+    % Compute mean and std bout lengths
+    [~, lens0] = detect_binarybouts(binary_vects(3,:)');
+    [~, lens1] = detect_binarybouts(binary_vects(1,:)');
+    [~, lens2] = detect_binarybouts(binary_vects(2,:)');
+
+    mn_lens(chamber,:) = [nanmean(lens0), nanmean(lens1), nanmean(lens2)];
+    std_lens(chamber,:) = [nanstd(lens0), nanstd(lens1), nanstd(lens2)];
+end
+% Plot mean bout durations with error bars
+figure(3); clf
+hold on
+
+% Define categories for legend
+labels = {'Disengaged', 'Target 1', 'Target 2'};
+colors = lines(3);  % or choose your own [R G B] triplets
+
+for i = 1:3
+    errorbar(1:n_chambers, mn_lens(:,i), std_lens(:,i), 'o-', ...
+        'Color', colors(i,:), 'LineWidth', 2, 'DisplayName', labels{i});
+end
+
+xlabel('Chamber #', 'FontSize', 12)
+ylabel('Mean Bout Length (frames)', 'FontSize', 12)
+legend('Location', 'best')
+title('Mean Bout Durations per Chamber')
+box off
 %% Save Results for Further Analysis
 
 % Define the directory to save the results
