@@ -1,6 +1,6 @@
 % Script for Amy to Detect Pursuit Bouts and Durations for Males in Varying Female Density, 3 females per male in each chamber
 
-cd('/')%change accordingly
+cd('/Volumes/otopaliklab/flydisco_data/2025-06-24/MultibubbleVariableDensity_multibubble__whiteOnly1hour062025_CSMH_3x1_1hr_CSMH_20250624T080405')%change accordingly
 load('registered_trx.mat')
 load('movie-track.mat')
 
@@ -8,14 +8,14 @@ load('movie-track.mat')
 %remember first is always the male
 fly_IDs = [
     1, 2, 3, 4;
-    5, 6, 7, 8;
-    9, 10, 11, 12;
+    6, 5, 7, 8;
+    11, 10, 9, 12;
     13, 14, 15, 16;
     17, 18, 19, 20;
     21, 22, 23, 24;
     25, 26, 27, 28;
-    29, 30, 31, 32;
-    33, 34, 35, 36
+    30, 29, 31, 32;
+    34, 33, 35, 36
 ];
 FPS = 60;
 for i = 1:length(trx)
@@ -33,7 +33,7 @@ for chamber = 1:size(fly_IDs, 1)
     for f = 1:length(female_ids)
         f_id = female_ids(f);
         dist = arrayfun(@(i) pdist([trx(male_id).x_mm(i), trx(male_id).y_mm(i); trx(f_id).x_mm(i), trx(f_id).y_mm(i)]), 1:endframe_all);
-        plot(trx(male_id).timestamps(1:endframe_all), dist, 'LineWidth', 2); hold on
+        plot(trx(male_id).timestamps(1:endframe_all), dist, 'LineWidth', 1); hold on
     end
     legend(arrayfun(@(x) sprintf('Target %d', x), 1:length(female_ids), 'UniformOutput', false))
     box off
@@ -121,14 +121,15 @@ figure(5); clf
 clear bar_stats target_stats
 
 n_chambers = size(fly_IDs, 1);
+n_targets = size(fly_IDs, 2) - 1;
 
 for chamber = 1:n_chambers
     male_id = fly_IDs(chamber, 1);
-    female_ids = fly_IDs(chamber, 2:4);
+    female_ids = fly_IDs(chamber, 2:end);
 
-    n_inds = zeros(1,3);  % to hold counts per female
+    n_inds = zeros(1, n_targets);  % one per female
 
-    for k = 1:3
+    for k = 1:n_targets
         f_id = female_ids(k);
         dist = zeros(1, endframe_all);
 
@@ -140,27 +141,26 @@ for chamber = 1:n_chambers
         end
 
         inds = find(dist < dist_threshold);
-        n_inds(k) = length(inds);  % frames pursuing this target
+        n_inds(k) = length(inds);
     end
 
     total_inds = length(trx(male_id).x_mm);
     none_inds = total_inds - sum(n_inds);
 
     % Percent time over total
-    bar_stats(chamber,:) = ([n_inds(1), none_inds] ./ total_inds) * 100;
-   
+    bar_stats(chamber,:) = ([n_inds, none_inds] ./ total_inds) * 100;
+
     % Percent pursuit time only
     if sum(n_inds) > 0
-    target_stats(chamber,:) = n_inds ./ sum(n_inds) * 100;
-else
-    target_stats(chamber,:) = [0, 0, 0];
+        target_stats(chamber,:) = n_inds ./ sum(n_inds) * 100;
+    else
+        target_stats(chamber,:) = zeros(1, n_targets);
     end
-
 end
 
 % Sort target preferences for bar plotting
 target_stats = sort(target_stats, 2, 'descend');
-bar_stats(:,1:3) = sort(bar_stats(:,1:3), 2, 'descend');
+bar_stats(:,1:n_targets) = sort(bar_stats(:,1:n_targets), 2, 'descend');
 
 % Plot 1: Percent total time
 subplot(1,2,1)
@@ -168,8 +168,11 @@ bar(bar_stats, 'stacked')
 box off
 ylabel('% Total Time', 'FontSize', 12)
 ylim([0 100])
-xlabel('Expreiment No. (60 Minutes)', 'FontSize', 12) %change for the 1hr long
-legend('Target 1', 'Target 2', 'Target 3', 'Disengaged', 'FontSize', 12, 'Location', 'northeast')
+xlabel('Experiment No. (60 Minutes)', 'FontSize', 12)
+
+% Auto legend: Target 1, 2, ..., N, Disengaged
+legend_labels = [arrayfun(@(x) sprintf('Target %d', x), 1:n_targets, 'UniformOutput', false), 'Disengaged'];
+legend(legend_labels, 'FontSize', 12, 'Location', 'northeast')
 
 % Plot 2: Percent pursuit time only
 subplot(1,2,2)
@@ -177,9 +180,10 @@ bar(target_stats, 'stacked')
 box off
 ylabel('% Pursuit Time', 'FontSize', 12)
 ylim([0 100])
-xlabel('Experiment No. (60 Minutes)', 'FontSize', 12) %change for 1hr experiments
-legend('Target 1', 'Target 2', 'Target 3', 'FontSize', 12, 'Location', 'northeast')
+xlabel('Experiment No. (60 Minutes)', 'FontSize', 12)
 
+legend(arrayfun(@(x) sprintf('Target %d', x), 1:n_targets, 'UniformOutput', false), ...
+    'FontSize', 12, 'Location', 'northeast')
 %% Save Results for Further Analysis
 
 % Define the directory to save the results
