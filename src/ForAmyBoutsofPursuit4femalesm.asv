@@ -1,5 +1,4 @@
-% Script for Amy to Detect Pursuit Bouts and Durations for Males in Varying Female Density, 3 females per male in each chamber
-
+% Script for Amy to Detect Pursuit Bouts and Durations for Males in Varying Female Density, 4 females per male in each chamber
 cd('/Volumes/otopaliklab/flydisco_data/2025-06-24/MultibubbleVariableDensity_multibubble__whiteOnly1hour062025_CSMH_3x1_1hr_CSMH_20250624T080405')%change accordingly
 load('registered_trx.mat')
 load('movie-track.mat')
@@ -7,16 +6,17 @@ load('movie-track.mat')
 %% Parameters
 %remember first is always the male
 fly_IDs = [
-    1, 2, 3, 4;
-    6, 5, 7, 8;
-    11, 10, 9, 12;
-    13, 14, 15, 16;
-    17, 18, 19, 20;
-    21, 22, 23, 24;
-    25, 26, 27, 28;
-    30, 29, 31, 32;
-    34, 33, 35, 36
+    1, 2, 3, 4, 5;
+    6, 7, 8, 9, 10;
+    11, 12, 13, 14, 15;
+    16, 17, 18, 19, 20;
+    21, 22, 23, 24, 25;
+    26, 27, 28, 29, 30;
+    31, 32, 33, 34, 35;
+    36, 37, 38, 39, 40;
+    41, 42, 43, 44, 45
 ];
+
 FPS = 60;
 for i = 1:length(trx)
     nframes(i) = trx(i).endframe;
@@ -24,10 +24,12 @@ end
 endframe_all = min(nframes);
 
 %% Plot interfly distance
+
 figure(1); clf
 for chamber = 1:size(fly_IDs, 1)
     male_id = fly_IDs(chamber, 1);
     female_ids = fly_IDs(chamber, 2:end);
+    n_targets = size(fly_IDs, 2) - 1;
 
     subplot(size(fly_IDs,1), 1, chamber);
     for f = 1:length(female_ids)
@@ -78,7 +80,6 @@ for chamber = 1:size(fly_IDs,1)
     ylabel('Target No.', 'FontSize', 12)
     xlabel('Time (s)', 'FontSize', 12)
 end
-
 %% Ethogram
 figure(3); clf
 time_threshold = 5 * FPS;
@@ -113,8 +114,6 @@ end
 ylim([0 size(fly_IDs,1) + 1])
 ylabel('Chamber No.', 'FontSize', 12)
 xlabel('Time (s)', 'FontSize', 12)
-
-
 %% Stacked Bar Graphs: % Time spent with each target
 
 figure(5); clf
