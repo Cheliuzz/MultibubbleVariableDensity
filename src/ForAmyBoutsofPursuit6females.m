@@ -1,21 +1,24 @@
-% Script for Amy to Detect Pursuit Bouts and Durations for Males in Varying Female Density, 4 females per male in each chamber
-cd('/Volumes/otopaliklab/flydisco_data/2025-06-25/MultibubbleVariableDensity_multibubble__whiteOnly1hour062025_CSMH_4x1_1hr_CSMH_20250625T113500')%change accordingly
+% Script to Detect Pursuit Bouts and Durations for Males in Varying Female Density
+% Experiment: 6 females per male per chamber
+
+cd('/Volumes/otopaliklab/flydisco_data/2025-06-26/MultibubbleVariableDensity_multibubble__whiteOnly1hour062025_CSMH_6x1_1hr_CSMH_20250626T081139'); %modify
 load('registered_trx.mat')
 load('movie-track.mat')
 
 %% Parameters
-%remember first is always the male
 fly_IDs = [
-    1, 2, 3, 4, 5;
-    6, 7, 8, 9, 10;
-    11, 12, 13, 14, 15;
-    16, 17, 18, 19, 20;
-    22, 26, 23, 24, 25;
-    27, 28, 31, 29, 30;
-    31, 32, 33, 34, 35;
-    36, 39, 38, 39, 40;
-    41, 42, 43, 44, 45
-]; %modify accordingly
+    1, 2, 3, 4, 5, 6, 7;
+    8, 9,10,11,12,13,14;
+    15,16,17,18,19,20,21;
+    22,23,24,25,26,27,28;
+    29,30,31,32,33,34,35;
+    36,37,38,39,40,41,42;
+    43,44,45,46,47,48,49;
+    50,51,52,53,54,55,56;
+    57,58,59,60,61,62,63;
+    
+    % modify if needed
+];
 
 FPS = 60;
 for i = 1:length(trx)
@@ -23,13 +26,11 @@ for i = 1:length(trx)
 end
 endframe_all = min(nframes);
 
-%% Plot interfly distance
-
+%% Interfly Distance Plot
 figure(1); clf
 for chamber = 1:size(fly_IDs, 1)
     male_id = fly_IDs(chamber, 1);
     female_ids = fly_IDs(chamber, 2:end);
-   % n_targets = size(fly_IDs, 2) - 1;% check if it works without this
 
     subplot(size(fly_IDs,1), 1, chamber);
     for f = 1:length(female_ids)
@@ -43,7 +44,7 @@ for chamber = 1:size(fly_IDs, 1)
     xlabel('Time (s)', 'FontSize', 12)
 end
 
-%% Raster plot
+%% Raster Plot
 figure(2); clf
 time_threshold = 10 * FPS;
 dist_threshold = 5;
@@ -80,6 +81,7 @@ for chamber = 1:size(fly_IDs,1)
     ylabel('Target No.', 'FontSize', 12)
     xlabel('Time (s)', 'FontSize', 12)
 end
+
 %% Ethogram
 figure(3); clf
 time_threshold = 5 * FPS;
@@ -114,8 +116,8 @@ end
 ylim([0 size(fly_IDs,1) + 1])
 ylabel('Chamber No.', 'FontSize', 12)
 xlabel('Time (s)', 'FontSize', 12)
-%% Stacked Bar Graphs: % Time spent with each target
 
+%% Stacked Bar Graphs
 figure(5); clf
 clear bar_stats target_stats
 
@@ -126,19 +128,11 @@ for chamber = 1:n_chambers
     male_id = fly_IDs(chamber, 1);
     female_ids = fly_IDs(chamber, 2:end);
 
-    n_inds = zeros(1, n_targets);  % one per female
+    n_inds = zeros(1, n_targets);
 
     for k = 1:n_targets
-        f_id = female_ids(k);ont 
-        dist = zeros(1, endframe_all);
-
-        for i = 1:endframe_all
-            dist(i) = pdist([
-                trx(male_id).x_mm(i), trx(male_id).y_mm(i);
-                trx(f_id).x_mm(i),    trx(f_id).y_mm(i)
-            ]);
-        end
-
+        f_id = female_ids(k);
+        dist = arrayfun(@(i) pdist([trx(male_id).x_mm(i), trx(male_id).y_mm(i); trx(f_id).x_mm(i), trx(f_id).y_mm(i)]), 1:endframe_all);
         inds = find(dist < dist_threshold);
         n_inds(k) = length(inds);
     end
@@ -146,10 +140,8 @@ for chamber = 1:n_chambers
     total_inds = length(trx(male_id).x_mm);
     none_inds = total_inds - sum(n_inds);
 
-    % Percent time over total
     bar_stats(chamber,:) = ([n_inds, none_inds] ./ total_inds) * 100;
 
-    % Percent pursuit time only
     if sum(n_inds) > 0
         target_stats(chamber,:) = n_inds ./ sum(n_inds) * 100;
     else
@@ -157,60 +149,41 @@ for chamber = 1:n_chambers
     end
 end
 
-% Sort target preferences for bar plotting
+% Sort for plotting
 target_stats = sort(target_stats, 2, 'descend');
 bar_stats(:,1:n_targets) = sort(bar_stats(:,1:n_targets), 2, 'descend');
 
-% Plot 1: Percent total time
 subplot(1,2,1)
 bar(bar_stats, 'stacked')
 box off
 ylabel('% Total Time', 'FontSize', 12)
 ylim([0 100])
-xlabel('Experiment No. (60 Minutes)', 'FontSize', 12)
+xlabel('Experiment No.', 'FontSize', 12)
+legend([arrayfun(@(x) sprintf('Target %d', x), 1:n_targets, 'UniformOutput', false), 'Disengaged'], 'FontSize', 12)
 
-% Auto legend: Target 1, 2, ..., N, Disengaged
-legend_labels = [arrayfun(@(x) sprintf('Target %d', x), 1:n_targets, 'UniformOutput', false), 'Disengaged'];
-legend(legend_labels, 'FontSize', 12, 'Location', 'northeast')
-
-% Plot 2: Percent pursuit time only
 subplot(1,2,2)
 bar(target_stats, 'stacked')
 box off
 ylabel('% Pursuit Time', 'FontSize', 12)
 ylim([0 100])
-xlabel('Experiment No. (60 Minutes)', 'FontSize', 12)
+xlabel('Experiment No.', 'FontSize', 12)
+legend(arrayfun(@(x) sprintf('Target %d', x), 1:n_targets, 'UniformOutput', false), 'FontSize', 12)
 
-legend(arrayfun(@(x) sprintf('Target %d', x), 1:n_targets, 'UniformOutput', false), ...
-    'FontSize', 12, 'Location', 'northeast')
-%% Save Results for Further Analysis
-
-% Define the directory to save the results
-results_dir = '/Volumes/otopaliklab/Amy/2025-06-25/MultibubbleVariableDensity_multibubble__whiteOnly1hour062025_CSMH_4x1_1hr_CSMH_20250625T113500'; % Change date and name of folder experiment accordingly
-
-% Create directory if it doesn't exist
+%% Save Results
+results_dir = '/Volumes/otopaliklab/Amy/2025-06-25/2025-06-26/MultibubbleVariableDensity_multibubble__whiteOnly1hour062025_CSMH_6x1_1hr_CSMH_20250626T081139';
 if ~exist(results_dir, 'dir')
     mkdir(results_dir);
 end
 
-% Save all open figures
 figHandles = findall(0, 'Type', 'figure');
 for i = 1:length(figHandles)
     fig = figHandles(i);
-
-    % Use figure number if Name is empty
     fig_name = get(fig, 'Name');
     if isempty(fig_name)
         fig_name = ['Figure_' num2str(fig.Number)];
     end
-
-    % Sanitize figure name: replace spaces and punctuation
     fig_name = regexprep(fig_name, '[^\w]', '_');
-
-    % Bring figure to focus (optional, but avoids issues with invisible figures)
     figure(fig.Number);
-
-    % Save as .png and .fig
     saveas(fig, fullfile(results_dir, [fig_name '.png']));
     savefig(fig, fullfile(results_dir, [fig_name '.fig']));
 end
