@@ -1,24 +1,22 @@
 % Script to Detect Pursuit Bouts and Durations for Males in Varying Female Density
-% Experiment: 6 females per male per chamber
+% Experiment: 9 females per male per chamber
 
-cd('/Volumes/otopaliklab/flydisco_data/2025-06-25/MultibubbleVariableDensity_multibubble__whiteOnly1hour062025_CSMH_4x1_1hr_CSMH_20250625T102433'); %modify
+cd('/Volumes/otopaliklab/flydisco_data/2025-06-26/MultibubbleVariableDensity_multibubble__whiteOnly1hour062025_CSMH_6x1_1hr_CSMH_20250626T081139'); %modify
 load('registered_trx.mat')
 load('movie-track.mat')
-
 %% Parameters
 fly_IDs = [
-    1, 2, 3, 4, 5, 6, 7;
-    8, 9,10,11,12,13,14;
-    15,16,17,18,19,20,21;
-    25,23,24,22,26,27,28;
-    29,30,31,32,33,34,35;
-    36,37,38,39,40,41,42;
-    45,43,46,44,47,48,49;
-    51,50,52,53,54,55,56;
-    63,58,59,60,61,62,57;
-];
+    1, 2, 3, 4, 5, 6, 7, 8, 9 ,10;
+    11,12,13,14,15,16 17,18,19,20
+    %21,22,23,24,25,26,27,28,29,30;
+    33,32,31,34,35,36,37,38,39,40;
+    41,42,43,44,45,46,47,48,49,50;
+    %49,50,51,52,53,54,55,56;
+    %57,58,59,60,61,62,63,64;
+    %65,66,67,68,69,70,71,72
+    
     % modify if needed
-
+];
 
 FPS = 60;
 for i = 1:length(trx)
@@ -167,7 +165,7 @@ box off
 ylabel('% Pursuit Time', 'FontSize', 12)
 ylim([0 100])
 xlabel('Experiment No.', 'FontSize', 12)
-%legend(arrayfun(@(x) sprintf('Target %d', x), 1:n_targets, 'UniformOutput', false), 'FontSize', 12)
+legend(arrayfun(@(x) sprintf('Target %d', x), 1:n_targets, 'UniformOutput', false), 'FontSize', 12)
 
 %% Compute Pursuit Bouts and Durations
 
@@ -259,7 +257,7 @@ box off
 %% Save Results for Further Analysis
 
 % Define the directory to save the results
-results_dir = '/Volumes/otopaliklab/Chelo/VariableDensity/Thresholds/07032025/2025-06-26/NODEGREE/'; % Change date and name of folder experiment accordingly
+results_dir = '/Volumes/otopaliklab/\'; % Change date and name of folder experiment accordingly
 
 % Create directory if it doesn't exist
 if ~exist(results_dir, 'dir')

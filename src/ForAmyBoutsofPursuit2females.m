@@ -8,15 +8,16 @@ load('movie-track.mat')
 %% Parameters, change as necessary:
 
 fly_IDs = [
-    1,  2,  3;
+    1,  2,  4;
     4,  5,  6;
     7, 8, 9;
-    11, 10, 12;
-    13,14, 15;
-    16,17,18;
-    19,20,21;
-    22,23,24;
-    25,26,27
+    10, 11, 12;
+    13, 14, 15;
+    16, 17, 18;
+    19, 20, 21;
+    22, 23, 24;
+    25, 26, 27;
+  
 ];
 FPS = 60;  
 % Compute endframe across all flies
@@ -362,7 +363,7 @@ box off
 %% Save Results for Further Analysis
 
 % Define the directory to save the results
-results_dir = '/Volumes/otopaliklab/Amy/2025-06-23/MultibbubleVariableDensity_multibubble__WhiteOnly1hour_CSMH_2x1_1hr_CSMH_20250623T080740'; % Change date and name of folder experiment accordingly
+results_dir = '/Volumes/otopaliklab/Variable_Density_data/Variable Density 2 to 1/2025-05-17/fourbubble_multibubble__WhiteOnly1hour_cs2to1_CSMH_20250517T124000'; % Change date and name of folder experiment accordingly
 
 % Create directory if it doesn't exist
 if ~exist(results_dir, 'dir')
